@@ -645,7 +645,13 @@ async fn main() {
 
     // Use persistent SQLite database
     let db_path = std::env::var("PLUSPLUS_DB").unwrap_or_else(|_| "plusplus.db".to_string());
-    let db_url = format!("sqlite:{}", db_path);
+    // Ensure parent directory exists
+    if let Some(parent) = std::path::Path::new(&db_path).parent() {
+        if !parent.exists() {
+            std::fs::create_dir_all(parent).expect("failed to create database directory");
+        }
+    }
+    let db_url = format!("sqlite:{}?mode=rwc", db_path);
     info!(path = %db_path, "connecting to database");
 
     let db = sqlx::SqlitePool::connect(&db_url)

@@ -78,6 +78,7 @@ RUN mkdir -p /app/data && chown -R plusplus:plusplus /app
 
 # Environment
 ENV PLUSPLUS_DB=/app/data/plusplus.db
+ENV PLUSPLUS_WEB_DIR=/app/web
 ENV RUST_LOG=info
 
 EXPOSE 3000
