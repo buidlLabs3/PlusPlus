@@ -1,6 +1,6 @@
 # ++ DEX Server — Multi-stage Docker build
 # Stage 1: Build the Rust workspace
-FROM rust:1.85-slim AS builder
+FROM rust:1.90-slim AS builder
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y \
