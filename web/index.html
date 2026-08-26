@@ -620,8 +620,8 @@
 
     <script>
     const API = window.location.origin;
-    const FIBER1 = 'http://127.0.0.1:8227';
-    const FIBER2 = 'http://127.0.0.1:8237';
+    // Fiber node info is fetched through the backend API
+    const FIBER_PROXY = '/api/fiber';
     let ws = null;
     let isConnected = false;
 
@@ -690,7 +690,8 @@
     // ========== WEBSOCKET ==========
     function connectWs() {
         try {
-            ws = new WebSocket(`ws://${window.location.host}/ws`);
+            const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${wsProto}//${window.location.host}/ws`);
             ws.onopen = () => {
                 isConnected = true;
                 document.getElementById('status-dot').classList.add('connected');
@@ -795,23 +796,26 @@
     }
 
     async function loadNetwork() {
-        const info1 = await fiberRpc(FIBER1, 'node_info');
-        const info2 = await fiberRpc(FIBER2, 'node_info');
-        if (info1?.result) {
-            document.getElementById('net-node1').textContent = `Pubkey: ${info1.result.pubkey.slice(0,16)}…`;
-        }
-        if (info2?.result) {
-            document.getElementById('net-node2').textContent = `Pubkey: ${info2.result.pubkey.slice(0,16)}…`;
-        }
-        // List peers on node 1
-        const peers = await fiberRpc(FIBER1, 'list_peers', [{}]);
-        if (peers?.result) {
-            document.getElementById('net-peers').textContent = peers.result.length;
-        }
-        // List channels on node 1
-        const channels = await fiberRpc(FIBER1, 'list_channels', [{}]);
-        if (channels?.result) {
-            document.getElementById('net-channels').textContent = channels.result.length;
+        // Fetch network info through the backend API (avoids CORS / direct node access)
+        try {
+            const res = await api('/fiber/network');
+            if (res?.success && res.data) {
+                const d = res.data;
+                document.getElementById('net-node1').textContent = d.node1_pubkey ? `Pubkey: ${d.node1_pubkey.slice(0,16)}…` : '—';
+                document.getElementById('net-node2').textContent = d.node2_pubkey ? `Pubkey: ${d.node2_pubkey.slice(0,16)}…` : '—';
+                document.getElementById('net-peers').textContent = d.peers ?? 0;
+                document.getElementById('net-channels').textContent = d.channels ?? 0;
+            }
+        } catch {
+            // Fallback: try direct Fiber RPC (works in local dev)
+            const info1 = await fiberRpc(FIBER1, 'node_info');
+            const info2 = await fiberRpc(FIBER2, 'node_info');
+            if (info1?.result) document.getElementById('net-node1').textContent = `Pubkey: ${info1.result.pubkey.slice(0,16)}…`;
+            if (info2?.result) document.getElementById('net-node2').textContent = `Pubkey: ${info2.result.pubkey.slice(0,16)}…`;
+            const peers = await fiberRpc(FIBER1, 'list_peers', [{}]);
+            if (peers?.result) document.getElementById('net-peers').textContent = peers.result.length;
+            const channels = await fiberRpc(FIBER1, 'list_channels', [{}]);
+            if (channels?.result) document.getElementById('net-channels').textContent = channels.result.length;
         }
     }
 

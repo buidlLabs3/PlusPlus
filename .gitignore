@@ -37,3 +37,6 @@ dev/
 
 # Untitled
 Untitled
+.vercel
+.env*.local
+.vercel/

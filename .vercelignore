@@ -1,0 +1,13 @@
+dev/
+target/
+node_modules/
+*.lock
+*.toml
+crates/
+contracts/
+sdk/
+scripts/
+docs/
+deploy/
+*.md
+!web/
