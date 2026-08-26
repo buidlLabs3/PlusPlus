@@ -6,6 +6,7 @@ FROM rust:1.90-slim AS builder
 RUN apt-get update && apt-get install -y \
     pkg-config \
     libssl-dev \
+    libsqlite3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -55,6 +56,7 @@ FROM debian:bookworm-slim AS runtime
 RUN apt-get update && apt-get install -y \
     ca-certificates \
     libssl3 \
+    libsqlite3-0 \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
