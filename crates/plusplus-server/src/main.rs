@@ -631,6 +631,10 @@ async fn add_request_id(
 
 #[tokio::main]
 async fn main() {
+    eprintln!("++ DEX server starting...");
+    eprintln!("PORT={}", std::env::var("PORT").unwrap_or_default());
+    eprintln!("PLUSPLUS_DB={}", std::env::var("PLUSPLUS_DB").unwrap_or_default());
+
     // Initialize structured logging
     let env_filter = tracing_subscriber::EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info"));
@@ -654,9 +658,14 @@ async fn main() {
     let db_url = format!("sqlite:{}?mode=rwc", db_path);
     info!(path = %db_path, "connecting to database");
 
+    eprintln!("Connecting to database: {}", db_url);
     let db = sqlx::SqlitePool::connect(&db_url)
         .await
-        .expect("failed to connect to database");
+        .unwrap_or_else(|e| {
+            eprintln!("FATAL: failed to connect to database: {}", e);
+            panic!("failed to connect to database: {}", e);
+        });
+    eprintln!("Database connected, initializing...");
     init_db(&db).await.expect("failed to init database");
     info!("database initialized");
 

@@ -86,3 +86,5 @@ EXPOSE 3000
 USER plusplus
 
 CMD ["/app/plusplus-server"]
+# If the server crashes, Railway won't see logs because they go to stderr.
+# We use exec form so signals propagate correctly.
