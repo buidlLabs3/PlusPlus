@@ -6,8 +6,7 @@ node_modules/
 crates/
 contracts/
 sdk/
-scripts/
 docs/
 deploy/
 *.md
-!web/
+!scripts/build-web.sh

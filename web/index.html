@@ -619,9 +619,8 @@
     <div class="toast-container" id="toast-container"></div>
 
     <script>
-    const API = window.location.origin;
-    // Fiber node info is fetched through the backend API
-    const FIBER_PROXY = '/api/fiber';
+    const API = '__PLUSPLUS_API_URL__' || window.location.origin;
+    const WS_URL = '__PLUSPLUS_WS_URL__';
     let ws = null;
     let isConnected = false;
 
@@ -690,8 +689,14 @@
     // ========== WEBSOCKET ==========
     function connectWs() {
         try {
-            const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            ws = new WebSocket(`${wsProto}//${window.location.host}/ws`);
+            let wsAddr;
+            if (WS_URL && !WS_URL.startsWith('__')) {
+                wsAddr = WS_URL;
+            } else {
+                const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                wsAddr = `${wsProto}//${window.location.host}/ws`;
+            }
+            ws = new WebSocket(wsAddr);
             ws.onopen = () => {
                 isConnected = true;
                 document.getElementById('status-dot').classList.add('connected');
