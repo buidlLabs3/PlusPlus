@@ -1,0 +1,17 @@
+[workspace]
+members = [
+    "crates/offer-protocol",
+    "crates/swap-executor",
+    "crates/channel-manager",
+    "crates/router",
+    "crates/plusplus-cli",
+    "crates/indexer",
+    "crates/fiber-client",
+    "crates/plusplus-server",
+    "crates/settlement",
+    "crates/incentives",
+]
+exclude = [
+    "contracts/swap-covenant",
+]
+resolver = "2"

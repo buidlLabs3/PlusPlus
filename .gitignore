@@ -1,6 +1,39 @@
-# Ignore everything
-*
+# Build artifacts
+target/
+**/target/
 
-# Except these
-!.gitignore
-!README.md
+# CKB contract builds
+contracts/*/target/
+
+# Database files
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Environment / secrets
+deploy/testnet-key.pem
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node
+node_modules/
+sdk/typescript/node_modules/
+sdk/typescript/dist/
+
+# Docker dev data
+dev/
+
+# Logs
+*.log
+
+# Untitled
+Untitled

@@ -1,0 +1,17 @@
+[package]
+name = "settlement"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+offer-protocol = { path = "../offer-protocol" }
+swap-executor = { path = "../swap-executor" }
+channel-manager = { path = "../channel-manager" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+blake2b-rs = "0.2"
+hex = "0.4"
+k256 = { version = "0.13", features = ["ecdsa", "arithmetic"] }
+
+[dev-dependencies]
+tempfile = "3"

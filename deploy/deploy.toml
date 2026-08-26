@@ -1,0 +1,21 @@
+[[cells]]
+name = "swap_covenant"
+enable_type_id = true
+location = { file = "contracts/swap-covenant/target/riscv64imac-unknown-none-elf/release/swap-covenant" }
+
+[lock]
+code_hash = "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8"
+args = "0xdfec8003fde3c3ee954bccc2b30189a4ed308ce9"
+hash_type = "type"
+
+[[dep_groups]]
+name = "swap_covenant_group"
+enable_type_id = false
+cells = ["swap_covenant"]
+
+[multisig_config]
+sighash_addresses = [
+    "ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsqwlajqq8l0rc0hf2j7vc2esrzdya5cge6gts8yrw",
+]
+require_first_n = 1
+threshold = 1

@@ -1,0 +1,36 @@
+# ++ DEX — Docker Compose
+# Single-command deployment: docker-compose up -d
+
+services:
+  plusplus-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: plusplus-dex
+    ports:
+      - "3000:3000"
+    environment:
+      - PLUSPLUS_DB=/app/data/plusplus.db
+      - RUST_LOG=info
+      - PLUSPLUS_NETWORK=testnet
+      # Fiber node connection (configure for your setup)
+      # - FIBER_NODE_URL=http://fiber-node:8080
+    volumes:
+      - plusplus-data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/info"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - plusplus
+
+volumes:
+  plusplus-data:
+    driver: local
+
+networks:
+  plusplus:
+    driver: bridge

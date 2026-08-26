@@ -1,0 +1,14 @@
+[package]
+name = "swap-covenant"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ckb-std = "0.16"
+
+[profile.release]
+overflow-checks = true
+lto = true
+codegen-units = 1
+opt-level = "s"
+strip = true

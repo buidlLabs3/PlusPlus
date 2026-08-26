@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>++ — Trustless RGB++ DEX</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #050510;
+            --bg-card: #0c0c1d;
+            --bg-card-hover: #11112a;
+            --bg-input: #0a0a20;
+            --border: #1a1a3e;
+            --border-glow: #3b82f6;
+            --text: #e2e8f0;
+            --text-dim: #64748b;
+            --text-bright: #f8fafc;
+            --accent: #3b82f6;
+            --accent-light: #60a5fa;
+            --accent-dark: #1d4ed8;
+            --green: #10b981;
+            --green-dim: #065f46;
+            --red: #ef4444;
+            --red-dim: #7f1d1d;
+            --orange: #f59e0b;
+            --purple: #8b5cf6;
+            --gradient-1: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+            --gradient-2: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+            --radius: 12px;
+            --radius-lg: 16px;
+            --shadow: 0 4px 24px rgba(0,0,0,0.4);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
+        ::selection { background: var(--accent); color: white; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+        /* ========== NAV ========== */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            padding: 16px 32px;
+            background: rgba(5,5,16,0.85); backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(26,26,62,0.5);
+            display: flex; justify-content: space-between; align-items: center;
+            transition: all 0.3s ease;
+        }
+        nav.scrolled { padding: 12px 32px; background: rgba(5,5,16,0.95); }
+        .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .nav-logo .logo-icon {
+            width: 36px; height: 36px; border-radius: 10px;
+            background: var(--gradient-1); display: flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 18px; color: white;
+        }
+        .nav-logo .logo-text { font-size: 20px; font-weight: 700; color: var(--text-bright); }
+        .nav-links { display: flex; gap: 32px; align-items: center; }
+        .nav-links a { color: var(--text-dim); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--text-bright); }
+        .nav-status { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-dim); }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); }
+        .status-dot.connected { background: var(--green); box-shadow: 0 0 8px rgba(16,185,129,0.5); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        /* ========== HERO ========== */
+        .hero {
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            position: relative; padding: 120px 32px 80px; text-align: center;
+        }
+        .hero-bg {
+            position: absolute; inset: 0; overflow: hidden;
+        }
+        .hero-bg::before {
+            content: ''; position: absolute; top: -40%; left: -20%; width: 80%; height: 80%;
+            background: radial-gradient(ellipse, rgba(59,130,246,0.12) 0%, transparent 70%);
+            animation: float 15s ease-in-out infinite;
+        }
+        .hero-bg::after {
+            content: ''; position: absolute; bottom: -30%; right: -20%; width: 70%; height: 70%;
+            background: radial-gradient(ellipse, rgba(139,92,246,0.1) 0%, transparent 70%);
+            animation: float 18s ease-in-out infinite reverse;
+        }
+        @keyframes float { 0%,100% { transform: translate(0, 0); } 50% { transform: translate(30px, -20px); } }
+        .hero-content { position: relative; z-index: 1; max-width: 800px; }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px;
+            background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3);
+            border-radius: 100px; font-size: 13px; color: var(--accent-light);
+            margin-bottom: 32px; font-weight: 500;
+        }
+        .hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+        .hero h1 {
+            font-size: clamp(40px, 6vw, 72px); font-weight: 900; line-height: 1.1;
+            letter-spacing: -0.03em; margin-bottom: 24px;
+        }
+        .hero h1 .gradient {
+            background: var(--gradient-1); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero p { font-size: 18px; color: var(--text-dim); max-width: 560px; margin: 0 auto 40px; line-height: 1.6; }
+        .hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+        .hero-stats {
+            display: flex; gap: 48px; justify-content: center; margin-top: 64px;
+            padding-top: 40px; border-top: 1px solid var(--border);
+        }
+        .hero-stat .val { font-size: 32px; font-weight: 800; color: var(--text-bright); font-family: 'JetBrains Mono', monospace; }
+        .hero-stat .label { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+
+        /* ========== BUTTONS ========== */
+        .btn {
+            padding: 12px 28px; border-radius: 10px; font-size: 15px; font-weight: 600;
+            cursor: pointer; border: none; transition: all 0.25s ease; font-family: inherit;
+            display: inline-flex; align-items: center; gap: 8px; text-decoration: none;
+        }
+        .btn-primary {
+            background: var(--gradient-1); color: white;
+            box-shadow: 0 4px 16px rgba(59,130,246,0.3);
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59,130,246,0.4); }
+        .btn-secondary {
+            background: var(--bg-card); color: var(--text); border: 1px solid var(--border);
+        }
+        .btn-secondary:hover { border-color: var(--accent); background: var(--bg-card-hover); }
+        .btn-ghost { background: transparent; color: var(--accent-light); padding: 12px 20px; }
+        .btn-ghost:hover { background: rgba(59,130,246,0.1); }
+        .btn-sm { padding: 8px 16px; font-size: 13px; border-radius: 8px; }
+        .btn-green { background: var(--green); color: white; }
+        .btn-green:hover { background: #059669; }
+        .btn-red { background: var(--red); color: white; }
+        .btn-red:hover { background: #dc2626; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+        /* ========== SECTIONS ========== */
+        section { padding: 100px 32px; position: relative; }
+        .section-header { text-align: center; margin-bottom: 64px; }
+        .section-header .tag {
+            display: inline-block; padding: 4px 12px; background: rgba(139,92,246,0.1);
+            border: 1px solid rgba(139,92,246,0.3); border-radius: 100px;
+            font-size: 12px; color: var(--purple); font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.05em; margin-bottom: 16px;
+        }
+        .section-header h2 { font-size: 36px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 12px; }
+        .section-header p { color: var(--text-dim); max-width: 500px; margin: 0 auto; line-height: 1.6; }
+
+        /* ========== FEATURES ========== */
+        .features-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px; max-width: 1100px; margin: 0 auto;
+        }
+        .feature-card {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+            padding: 32px; transition: all 0.3s ease; position: relative; overflow: hidden;
+        }
+        .feature-card:hover { border-color: rgba(59,130,246,0.3); transform: translateY(-4px); box-shadow: var(--shadow); }
+        .feature-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: var(--gradient-1); opacity: 0; transition: opacity 0.3s;
+        }
+        .feature-card:hover::before { opacity: 1; }
+        .feature-icon {
+            width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-size: 22px; margin-bottom: 20px;
+        }
+        .feature-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; color: var(--text-bright); }
+        .feature-card p { font-size: 14px; color: var(--text-dim); line-height: 1.6; }
+
+        /* ========== HOW IT WORKS ========== */
+        .steps { max-width: 900px; margin: 0 auto; position: relative; }
+        .steps::before {
+            content: ''; position: absolute; left: 28px; top: 0; bottom: 0; width: 2px;
+            background: linear-gradient(to bottom, var(--accent), var(--purple), var(--green));
+            opacity: 0.3;
+        }
+        .step {
+            display: flex; gap: 32px; margin-bottom: 48px; position: relative;
+        }
+        .step-num {
+            width: 56px; height: 56px; border-radius: 16px; flex-shrink: 0;
+            background: var(--bg-card); border: 2px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; font-weight: 800; color: var(--accent-light);
+            font-family: 'JetBrains Mono', monospace; z-index: 1;
+        }
+        .step-content h3 { font-size: 18px; font-weight: 700; margin-bottom: 6px; color: var(--text-bright); }
+        .step-content p { font-size: 14px; color: var(--text-dim); line-height: 1.6; }
+
+        /* ========== DEX APP ========== */
+        #app { display: none; }
+        .app-layout { display: flex; min-height: 100vh; padding-top: 72px; }
+        .app-sidebar {
+            width: 240px; background: var(--bg-card); border-right: 1px solid var(--border);
+            padding: 24px 16px; position: fixed; top: 72px; bottom: 0;
+        }
+        .sidebar-section { margin-bottom: 24px; }
+        .sidebar-section .title { font-size: 11px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; padding: 0 12px; margin-bottom: 8px; }
+        .sidebar-item {
+            display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px;
+            cursor: pointer; color: var(--text-dim); font-size: 14px; font-weight: 500;
+            transition: all 0.15s;
+        }
+        .sidebar-item:hover { background: rgba(59,130,246,0.08); color: var(--text); }
+        .sidebar-item.active { background: rgba(59,130,246,0.12); color: var(--accent-light); }
+        .sidebar-item .icon { font-size: 18px; width: 24px; text-align: center; }
+        .app-main { margin-left: 240px; flex: 1; padding: 32px; }
+        .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+        .app-header h1 { font-size: 24px; font-weight: 700; }
+        .page { display: none; animation: fadeIn 0.3s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ========== CARDS & TABLES ========== */
+        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card-header h3 { font-size: 16px; font-weight: 600; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
+        .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+        .stat-card .label { font-size: 13px; color: var(--text-dim); margin-bottom: 8px; }
+        .stat-card .value { font-size: 28px; font-weight: 800; color: var(--text-bright); font-family: 'JetBrains Mono', monospace; }
+        .stat-card .change { font-size: 12px; color: var(--green); margin-top: 4px; }
+        .stat-card .change.down { color: var(--red); }
+
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); }
+        td { padding: 14px 16px; font-size: 14px; border-bottom: 1px solid rgba(26,26,62,0.5); }
+        tr:hover td { background: rgba(59,130,246,0.04); }
+        .mono { font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+        .hash { color: var(--accent-light); }
+        .badge {
+            display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;
+        }
+        .badge-active { background: var(--green-dim); color: #34d399; }
+        .badge-filled { background: rgba(59,130,246,0.15); color: var(--accent-light); }
+        .badge-pending { background: rgba(245,158,11,0.15); color: var(--orange); }
+        .badge-cancelled { background: rgba(100,116,139,0.15); color: var(--text-dim); }
+
+        /* ========== FORMS ========== */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group.full { grid-column: 1 / -1; }
+        .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--text-dim); margin-bottom: 6px; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 10px 14px; background: var(--bg-input); border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text); font-size: 14px; font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+        .form-group input::placeholder { color: var(--text-dim); opacity: 0.6; }
+
+        .swap-interface { display: grid; grid-template-columns: 1fr; gap: 0; max-width: 480px; margin: 0 auto; }
+        .swap-box {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+            padding: 20px; position: relative;
+        }
+        .swap-box.top { border-radius: var(--radius-lg) var(--radius-lg) 0 0; border-bottom: none; }
+        .swap-box.bottom { border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
+        .swap-label { font-size: 13px; color: var(--text-dim); margin-bottom: 10px; }
+        .swap-input-row { display: flex; align-items: center; gap: 12px; }
+        .swap-input-row input {
+            flex: 1; background: none; border: none; color: var(--text-bright); font-size: 28px;
+            font-weight: 700; font-family: 'JetBrains Mono', monospace; padding: 0;
+        }
+        .swap-input-row input:focus { outline: none; }
+        .swap-input-row input::placeholder { color: var(--text-dim); opacity: 0.4; }
+        .swap-token {
+            display: flex; align-items: center; gap: 8px; padding: 6px 12px;
+            background: rgba(59,130,246,0.1); border-radius: 8px; font-weight: 600; font-size: 14px;
+            white-space: nowrap;
+        }
+        .swap-token .icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .swap-arrow {
+            position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+            width: 40px; height: 40px; border-radius: 12px; background: var(--bg-card);
+            border: 3px solid var(--bg); display: flex; align-items: center; justify-content: center;
+            font-size: 18px; color: var(--text-dim); z-index: 2; cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .swap-arrow:hover { transform: translate(-50%, -50%) rotate(180deg); }
+        .swap-execute {
+            width: 100%; padding: 16px; margin-top: 0; border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+            font-size: 16px; font-weight: 700; border: none; cursor: pointer;
+            background: var(--gradient-1); color: white; font-family: inherit;
+            transition: all 0.2s;
+        }
+        .swap-execute:hover { opacity: 0.9; transform: translateY(1px); }
+        .swap-execute:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+        /* ========== TOAST ========== */
+        .toast-container { position: fixed; top: 80px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; }
+        .toast {
+            padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 500;
+            display: flex; align-items: center; gap: 10px;
+            animation: slideIn 0.3s ease, slideOut 0.3s ease 3.7s forwards;
+            box-shadow: var(--shadow); max-width: 380px;
+        }
+        .toast-success { background: #065f46; color: #34d399; border: 1px solid rgba(52,211,153,0.3); }
+        .toast-error { background: #7f1d1d; color: #fca5a5; border: 1px solid rgba(252,165,165,0.3); }
+        .toast-info { background: #1e3a5f; color: #93c5fd; border: 1px solid rgba(147,197,253,0.3); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slideOut { from { opacity: 1; } to { opacity: 0; transform: translateX(100%); } }
+
+        /* ========== EMPTY STATE ========== */
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-dim); }
+        .empty-state .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+        .empty-state h3 { font-size: 16px; color: var(--text); margin-bottom: 8px; }
+        .empty-state p { font-size: 14px; max-width: 360px; margin: 0 auto; }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .hero-stats { flex-direction: column; gap: 24px; }
+            .hero h1 { font-size: 36px; }
+            .nav-links { display: none; }
+            .app-sidebar { display: none; }
+            .app-main { margin-left: 0; }
+            .form-grid { grid-template-columns: 1fr; }
+            .features-grid { grid-template-columns: 1fr; }
+            section { padding: 60px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- ========== NAV ========== -->
+    <nav id="navbar">
+        <a class="nav-logo" href="#" onclick="showLanding()">
+            <div class="logo-icon">++</div>
+            <span class="logo-text">PlusPlus</span>
+        </a>
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How It Works</a>
+            <a href="#" onclick="showApp()">Launch App</a>
+        </div>
+        <div class="nav-status">
+            <div class="status-dot" id="status-dot"></div>
+            <span id="status-text">Disconnected</span>
+        </div>
+    </nav>
+
+    <!-- ========== LANDING PAGE ========== -->
+    <div id="landing">
+        <!-- Hero -->
+        <section class="hero">
+            <div class="hero-bg"></div>
+            <div class="hero-content">
+                <div class="hero-badge"><div class="dot"></div> Live on CKB Testnet</div>
+                <h1>Trade RGB++ Assets<br><span class="gradient">Trustlessly</span></h1>
+                <p>The first decentralized exchange for RGB++ tokens. Atomic swaps enforced by CKB covenants. No intermediaries. No custody. Fully on-chain settlement.</p>
+                <div class="hero-actions">
+                    <button class="btn btn-primary" onclick="showApp()">Launch DEX →</button>
+                    <a href="#how-it-works" class="btn btn-secondary">Learn More</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <div class="val" id="hero-offers">0</div>
+                        <div class="label">Active Offers</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="val" id="hero-swaps">0</div>
+                        <div class="label">Total Swaps</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="val">2</div>
+                        <div class="label">Fiber Nodes</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="val">0%</div>
+                        <div class="label">Maker Fee</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features -->
+        <section id="features">
+            <div class="section-header">
+                <div class="tag">Features</div>
+                <h2>Built for the Future of Bitcoin</h2>
+                <p>Leveraging CKB's unique capabilities for truly decentralized trading</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: rgba(16,185,129,0.12); color: var(--green);">🔐</div>
+                    <h3>Trustless Swaps</h3>
+                    <p>Every trade is an atomic swap enforced by a CKB covenant smart contract. Both legs complete or both revert. No counterparty risk.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: rgba(59,130,246,0.12); color: var(--accent-light);">⚡</div>
+                    <h3>Fiber Channel Routing</h3>
+                    <p>Off-chain payment routing via Fiber Network. Instant settlements with multi-hop pathfinding and minimal fees.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: rgba(139,92,246,0.12); color: var(--purple);">🪙</div>
+                    <h3>RGB++ Native</h3>
+                    <p>First-class support for RGB++ assets bound to BTC UTXOs via isomorphic binding. Trade Bitcoin-native tokens directly.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: rgba(245,158,11,0.12); color: var(--orange);">💰</div>
+                    <h3>Zero Maker Fees</h3>
+                    <p>Makers pay 0% fees. Takers pay only 0.2%. Protocol treasury receives 0.05%. The fairest fee structure in DeFi.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: rgba(236,72,153,0.12); color: #ec4899;">🌐</div>
+                    <h3>Multi-Hop Routing</h3>
+                    <p>Liquidity-aware Dijkstra routing splits large trades across multiple paths for best execution and minimal slippage.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: rgba(6,182,212,0.12); color: #06b6d4;">📡</div>
+                    <h3>Real-Time Events</h3>
+                    <p>WebSocket notifications for every swap, offer update, and settlement. Stay informed as trades execute on-chain.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works -->
+        <section id="how-it-works">
+            <div class="section-header">
+                <div class="tag">How It Works</div>
+                <h2>Swap in 4 Steps</h2>
+                <p>From listing to settlement, the entire flow is trustless and on-chain</p>
+            </div>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-num">01</div>
+                    <div class="step-content">
+                        <h3>Create an Offer</h3>
+                        <p>A seller signs and broadcasts an offer specifying the RGB++ asset, amount, and BTC price. The offer is indexed and visible to all takers.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">02</div>
+                    <div class="step-content">
+                        <h3>Accept & Route</h3>
+                        <p>A buyer accepts the offer. The system finds the optimal route through Fiber channels, splitting large amounts across multiple paths if needed.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">03</div>
+                    <div class="step-content">
+                        <h3>Atomic Execution</h3>
+                        <p>A CKB covenant contract is deployed enforcing both legs of the trade. The seller's RGB++ asset and buyer's BTC are locked in the same transaction.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">04</div>
+                    <div class="step-content">
+                        <h3>Settlement</h3>
+                        <p>Once both parties confirm, the covenant executes: assets swap atomically. If either side fails to confirm, funds return to their owners.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer style="padding: 40px 32px; border-top: 1px solid var(--border); text-align: center; color: var(--text-dim); font-size: 13px;">
+            <p>++ DEX — Built on Nervos CKB · Powered by Fiber Network · RGB++ Protocol</p>
+        </footer>
+    </div>
+
+    <!-- ========== DEX APP ========== -->
+    <div id="app">
+        <div class="app-layout">
+            <aside class="app-sidebar">
+                <div class="sidebar-section">
+                    <div class="title">Trade</div>
+                    <div class="sidebar-item active" onclick="showPage('swap')">
+                        <span class="icon">⇄</span> Swap
+                    </div>
+                    <div class="sidebar-item" onclick="showPage('offers')">
+                        <span class="icon">📋</span> Offers
+                    </div>
+                    <div class="sidebar-item" onclick="showPage('create')">
+                        <span class="icon">➕</span> Create Offer
+                    </div>
+                </div>
+                <div class="sidebar-section">
+                    <div class="title">Portfolio</div>
+                    <div class="sidebar-item" onclick="showPage('swaps')">
+                        <span class="icon">📜</span> My Swaps
+                    </div>
+                    <div class="sidebar-item" onclick="showPage('assets')">
+                        <span class="icon">🪙</span> Assets
+                    </div>
+                </div>
+                <div class="sidebar-section">
+                    <div class="title">Network</div>
+                    <div class="sidebar-item" onclick="showPage('network')">
+                        <span class="icon">🌐</span> Network
+                    </div>
+                </div>
+            </aside>
+            <main class="app-main">
+                <!-- Swap Page -->
+                <div id="page-swap" class="page active">
+                    <div class="app-header"><h1>Swap</h1></div>
+                    <div class="swap-interface">
+                        <div class="swap-box top">
+                            <div class="swap-label">You Sell</div>
+                            <div class="swap-input-row">
+                                <input type="number" id="swap-sell" placeholder="0" step="any">
+                                <div class="swap-token"><div class="icon" style="background: rgba(139,92,246,0.2); color: var(--purple);">◆</div> RGB++</div>
+                            </div>
+                        </div>
+                        <div class="swap-arrow">↕</div>
+                        <div class="swap-box bottom">
+                            <div class="swap-label">You Buy</div>
+                            <div class="swap-input-row">
+                                <input type="number" id="swap-buy" placeholder="0" step="any" readonly>
+                                <div class="swap-token"><div class="icon" style="background: rgba(245,158,11,0.2); color: var(--orange);">₿</div> BTC</div>
+                            </div>
+                        </div>
+                        <button class="swap-execute" onclick="executeSwap()" disabled id="swap-btn">Connect Wallet to Swap</button>
+                    </div>
+                    <div style="max-width: 480px; margin: 24px auto 0;">
+                        <div class="card" style="padding: 16px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-dim);">
+                                <span>Best available rate</span><span class="mono" id="swap-rate">—</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-dim); margin-top: 8px;">
+                                <span>Network fee</span><span class="mono">~0.0001 CKB</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Offers Page -->
+                <div id="page-offers" class="page">
+                    <div class="app-header">
+                        <h1>Marketplace</h1>
+                        <button class="btn btn-primary btn-sm" onclick="showPage('create')">+ New Offer</button>
+                    </div>
+                    <div class="card">
+                        <div class="table-wrap">
+                            <table>
+                                <thead><tr>
+                                    <th>Asset</th><th>Sell</th><th>Buy</th><th>Rate</th><th>Expiry</th><th>Status</th><th></th>
+                                </tr></thead>
+                                <tbody id="offers-table"><tr><td colspan="7"><div class="empty-state"><div class="icon">📋</div><h3>No offers yet</h3><p>Create the first offer to start trading</p></div></td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Create Offer Page -->
+                <div id="page-create" class="page">
+                    <div class="app-header"><h1>Create Offer</h1></div>
+                    <div class="card" style="max-width: 640px;">
+                        <div class="form-grid">
+                            <div class="form-group"><label>Sell Asset Code Hash</label><input type="text" id="create-sell-hash" placeholder="0x..."></div>
+                            <div class="form-group"><label>Sell Asset Args</label><input type="text" id="create-sell-args" placeholder="0x"></div>
+                            <div class="form-group"><label>Sell Amount</label><input type="number" id="create-sell-amount" placeholder="10000"></div>
+                            <div class="form-group"><label>Buy Amount (BTC satoshis)</label><input type="number" id="create-buy-amount" placeholder="500"></div>
+                            <div class="form-group"><label>Your Lock Hash</label><input type="text" id="create-lock-hash" placeholder="0x... (64 hex chars)"></div>
+                            <div class="form-group"><label>Expiry (block height)</label><input type="number" id="create-expiry" placeholder="100000"></div>
+                        </div>
+                        <div style="margin-top: 8px;">
+                            <button class="btn btn-primary" onclick="createOffer()">Create Offer</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- My Swaps Page -->
+                <div id="page-swaps" class="page">
+                    <div class="app-header"><h1>My Swaps</h1></div>
+                    <div class="card">
+                        <div class="table-wrap">
+                            <table>
+                                <thead><tr><th>Tx Hash</th><th>Offer ID</th><th>Amount</th><th>Status</th><th>Time</th></tr></thead>
+                                <tbody id="swaps-table"><tr><td colspan="5"><div class="empty-state"><div class="icon">📜</div><h3>No swaps yet</h3><p>Your swap history will appear here</p></div></td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assets Page -->
+                <div id="page-assets" class="page">
+                    <div class="app-header"><h1>Assets</h1></div>
+                    <div class="card">
+                        <div class="table-wrap">
+                            <table>
+                                <thead><tr><th>Name</th><th>Symbol</th><th>Supply</th><th>Issuer</th><th></th></tr></thead>
+                                <tbody id="assets-table"><tr><td colspan="5"><div class="empty-state"><div class="icon">🪙</div><h3>No assets registered</h3><p>Register an RGB++ asset to start trading</p></div></td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Network Page -->
+                <div id="page-network" class="page">
+                    <div class="app-header"><h1>Network</h1></div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="label">Fiber Node 1</div>
+                            <div class="value" style="font-size: 14px;" id="net-node1">—</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="label">Fiber Node 2</div>
+                            <div class="value" style="font-size: 14px;" id="net-node2">—</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="label">Connected Peers</div>
+                            <div class="value" id="net-peers">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="label">Active Channels</div>
+                            <div class="value" id="net-channels">0</div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+    const API = window.location.origin;
+    const FIBER1 = 'http://127.0.0.1:8227';
+    const FIBER2 = 'http://127.0.0.1:8237';
+    let ws = null;
+    let isConnected = false;
+
+    // ========== NAVIGATION ==========
+    function showLanding() {
+        document.getElementById('landing').style.display = 'block';
+        document.getElementById('app').style.display = 'none';
+        document.getElementById('app').style.cssText = '';
+        window.scrollTo(0, 0);
+    }
+
+    function showApp() {
+        document.getElementById('landing').style.display = 'none';
+        const app = document.getElementById('app');
+        app.style.display = 'block';
+        document.querySelector('.app-layout').style.display = 'flex';
+        window.scrollTo(0, 0);
+        loadPageData();
+    }
+
+    function showPage(name) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+        document.getElementById(`page-${name}`).classList.add('active');
+        event.currentTarget.classList.add('active');
+        loadPageData();
+    }
+
+    // ========== TOAST ==========
+    function toast(msg, type = 'info') {
+        const icons = { success: '✓', error: '✗', info: 'ℹ' };
+        const el = document.createElement('div');
+        el.className = `toast toast-${type}`;
+        el.innerHTML = `<span>${icons[type]}</span> ${msg}`;
+        document.getElementById('toast-container').appendChild(el);
+        setTimeout(() => el.remove(), 4000);
+    }
+
+    // ========== API HELPERS ==========
+    async function api(path, opts = {}) {
+        try {
+            const res = await fetch(`${API}${path}`, {
+                headers: { 'Content-Type': 'application/json' },
+                ...opts,
+                body: opts.body ? JSON.stringify(opts.body) : undefined,
+            });
+            const data = await res.json();
+            return data;
+        } catch (e) {
+            toast(`API error: ${e.message}`, 'error');
+            return null;
+        }
+    }
+
+    async function fiberRpc(url, method, params = []) {
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+            });
+            return await res.json();
+        } catch (e) { return null; }
+    }
+
+    // ========== WEBSOCKET ==========
+    function connectWs() {
+        try {
+            ws = new WebSocket(`ws://${window.location.host}/ws`);
+            ws.onopen = () => {
+                isConnected = true;
+                document.getElementById('status-dot').classList.add('connected');
+                document.getElementById('status-text').textContent = 'Connected';
+                toast('Connected to ++ DEX', 'success');
+            };
+            ws.onmessage = (e) => {
+                try {
+                    const msg = JSON.parse(e.data);
+                    if (msg.type === 'connected') return;
+                    if (msg.event) {
+                        handleEvent(msg.event);
+                    }
+                } catch {}
+            };
+            ws.onclose = () => {
+                isConnected = false;
+                document.getElementById('status-dot').classList.remove('connected');
+                document.getElementById('status-text').textContent = 'Disconnected';
+                setTimeout(connectWs, 3000);
+            };
+            ws.onerror = () => ws.close();
+        } catch {}
+    }
+
+    function handleEvent(event) {
+        const type = event.type || event.event_type;
+        if (type === 'offer.created') toast(`New offer: ${event.data?.offer_id?.slice(0,12)}...`, 'info');
+        else if (type === 'swap.executed') toast(`Swap executed: ${event.data?.tx_hash?.slice(0,12)}...`, 'success');
+        else if (type === 'offer.cancelled') toast('Offer cancelled', 'info');
+    }
+
+    // ========== DATA LOADING ==========
+    async function loadPageData() {
+        await Promise.all([loadOffers(), loadSwaps(), loadAssets(), loadNetwork()]);
+    }
+
+    async function loadOffers() {
+        const res = await api('/offers?status=Active');
+        if (!res?.success) return;
+        const offers = res.data || [];
+        document.getElementById('hero-offers').textContent = offers.length;
+        const tbody = document.getElementById('offers-table');
+        if (!offers.length) {
+            tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="icon">📋</div><h3>No active offers</h3><p>Create the first offer to start trading</p></div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = offers.map(o => {
+            const rate = (o.buy_amount / o.sell_amount).toFixed(6);
+            return `<tr>
+                <td class="mono hash">${o.sell_asset.slice(0,10)}…</td>
+                <td class="mono">${Number(o.sell_amount).toLocaleString()}</td>
+                <td class="mono">${Number(o.buy_amount).toLocaleString()} sats</td>
+                <td class="mono">${rate}</td>
+                <td class="mono">${o.expiry.toLocaleString()}</td>
+                <td><span class="badge badge-${o.status.toLowerCase()}">${o.status}</span></td>
+                <td><button class="btn btn-green btn-sm" onclick="acceptOffer('${o.offer_id}', ${o.buy_amount})">Accept</button></td>
+            </tr>`;
+        }).join('');
+        // Update swap page rate
+        if (offers.length) {
+            const best = (offers[0].buy_amount / offers[0].sell_amount).toFixed(6);
+            document.getElementById('swap-rate').textContent = `${best} BTC/RGB++`;
+        }
+    }
+
+    async function loadSwaps() {
+        const res = await api('/swaps');
+        if (!res?.success) return;
+        const swaps = res.data || [];
+        document.getElementById('hero-swaps').textContent = swaps.length;
+        const tbody = document.getElementById('swaps-table');
+        if (!swaps.length) {
+            tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="icon">📜</div><h3>No swaps yet</h3><p>Your swap history will appear here</p></div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = swaps.map(s => `<tr>
+            <td class="mono hash">${s.tx_hash.slice(0,16)}…</td>
+            <td class="mono">${s.offer_id.slice(0,12)}…</td>
+            <td class="mono">${Number(s.amount).toLocaleString()}</td>
+            <td><span class="badge badge-${s.status.toLowerCase()}">${s.status}</span></td>
+            <td style="color: var(--text-dim);">block #${s.block}</td>
+        </tr>`).join('');
+    }
+
+    async function loadAssets() {
+        const res = await api('/assets');
+        if (!res?.success) return;
+        const assets = res.data || [];
+        const tbody = document.getElementById('assets-table');
+        if (!assets.length) {
+            tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="icon">🪙</div><h3>No assets registered</h3><p>Register an RGB++ asset to start trading</p></div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = assets.map(a => `<tr>
+            <td style="font-weight: 600;">${a.name}</td>
+            <td><span class="badge badge-active">${a.symbol}</span></td>
+            <td class="mono">${Number(a.total_supply).toLocaleString()}</td>
+            <td class="mono hash">${a.issuer_lock.slice(0,16)}…</td>
+            <td></td>
+        </tr>`).join('');
+    }
+
+    async function loadNetwork() {
+        const info1 = await fiberRpc(FIBER1, 'node_info');
+        const info2 = await fiberRpc(FIBER2, 'node_info');
+        if (info1?.result) {
+            document.getElementById('net-node1').textContent = `Pubkey: ${info1.result.pubkey.slice(0,16)}…`;
+        }
+        if (info2?.result) {
+            document.getElementById('net-node2').textContent = `Pubkey: ${info2.result.pubkey.slice(0,16)}…`;
+        }
+        // List peers on node 1
+        const peers = await fiberRpc(FIBER1, 'list_peers', [{}]);
+        if (peers?.result) {
+            document.getElementById('net-peers').textContent = peers.result.length;
+        }
+        // List channels on node 1
+        const channels = await fiberRpc(FIBER1, 'list_channels', [{}]);
+        if (channels?.result) {
+            document.getElementById('net-channels').textContent = channels.result.length;
+        }
+    }
+
+    // ========== ACTIONS ==========
+    async function createOffer() {
+        const sellHash = document.getElementById('create-sell-hash').value;
+        const sellArgs = document.getElementById('create-sell-args').value || '0x';
+        const sellAmount = parseInt(document.getElementById('create-sell-amount').value);
+        const buyAmount = parseInt(document.getElementById('create-buy-amount').value);
+        const lockHash = document.getElementById('create-lock-hash').value;
+        const expiry = parseInt(document.getElementById('create-expiry').value);
+
+        if (!sellHash || !sellAmount || !buyAmount || !lockHash || !expiry) {
+            toast('Please fill in all fields', 'error');
+            return;
+        }
+        if (lockHash.length !== 64) {
+            toast('Lock hash must be 64 hex characters', 'error');
+            return;
+        }
+
+        const res = await api('/offers', {
+            method: 'POST',
+            body: {
+                sell_type_code_hash: sellHash,
+                sell_type_args: sellArgs,
+                sell_amount: sellAmount,
+                buy_type_code_hash: '0x0000000000000000000000000000000000000000000000000000000000000000',
+                buy_type_args: '0x',
+                buy_amount: buyAmount,
+                seller_lock_hash: lockHash,
+                expiry: expiry,
+            },
+        });
+        if (res?.success) {
+            toast(`Offer created: ${res.data.offer_id.slice(0,16)}…`, 'success');
+            document.querySelectorAll('#page-create input').forEach(i => i.value = '');
+            showPage('offers');
+            document.querySelectorAll('.sidebar-item')[1].click();
+            loadOffers();
+        } else {
+            toast(`Failed: ${res?.error || 'unknown error'}`, 'error');
+        }
+    }
+
+    async function acceptOffer(offerId, amount) {
+        const lockHash = prompt('Enter your lock hash (64 hex chars):');
+        if (!lockHash || lockHash.length !== 64) {
+            toast('Invalid lock hash', 'error');
+            return;
+        }
+        const res = await api('/swaps', {
+            method: 'POST',
+            body: { offer_id: offerId, buyer_lock_hash: lockHash, amount: amount },
+        });
+        if (res?.success) {
+            toast(`Swap executed! Tx: ${res.data.tx_hash.slice(0,16)}…`, 'success');
+            loadPageData();
+        } else {
+            toast(`Swap failed: ${res?.error || 'unknown error'}`, 'error');
+        }
+    }
+
+    async function executeSwap() {
+        const offers = await api('/offers?status=Active');
+        if (!offers?.success || !offers.data.length) {
+            toast('No active offers available', 'error');
+            return;
+        }
+        const offer = offers.data[0];
+        const lockHash = prompt('Enter your lock hash (64 hex chars):');
+        if (!lockHash || lockHash.length !== 64) {
+            toast('Invalid lock hash', 'error');
+            return;
+        }
+        const res = await api('/swaps', {
+            method: 'POST',
+            body: { offer_id: offer.offer_id, buyer_lock_hash: lockHash, amount: offer.buy_amount },
+        });
+        if (res?.success) {
+            toast(`Swap executed! Tx: ${res.data.tx_hash.slice(0,16)}…`, 'success');
+            loadPageData();
+        } else {
+            toast(`Failed: ${res?.error || 'unknown error'}`, 'error');
+        }
+    }
+
+    // ========== INIT ==========
+    window.addEventListener('scroll', () => {
+        document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
+    });
+
+    // Load hero stats
+    async function loadHeroStats() {
+        const res = await api('/info');
+        if (res?.success) {
+            document.getElementById('hero-offers').textContent = res.data.offers_count;
+            document.getElementById('hero-swaps').textContent = res.data.swaps_count;
+        }
+    }
+
+    connectWs();
+    loadHeroStats();
+    </script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+[package]
+name = "router"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+channel-manager = { path = "../channel-manager" }
+serde = { version = "1.0", features = ["derive"] }
+
+[dev-dependencies]
+tempfile = "3"

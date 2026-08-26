@@ -1,0 +1,23 @@
+{
+  "name": "@plusplus/sdk",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for ++ RGB++ DEX",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest"
+  },
+  "keywords": [
+    "ckb",
+    "rgb++",
+    "dex",
+    "fiber",
+    "bitcoin"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "typescript": "^5.9.3"
+  }
+}

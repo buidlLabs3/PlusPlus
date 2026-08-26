@@ -1,0 +1,30 @@
+###############################################################################
+# ++ (PlusPlus) DEX — Local Dev (Fiber nodes + PlusPlus server)
+#
+# Fiber nodes use host networking so PlusPlus can reach them on localhost.
+#
+#   docker compose -f docker-compose.local.yml up -d
+#   # Or run PlusPlus natively: cargo run -p plusplus-server
+###############################################################################
+services:
+  fiber-node-1:
+    image: nervos/fiber:0.9.0
+    container_name: fiber-node-1
+    network_mode: host
+    environment:
+      - FIBER_SECRET_KEY_PASSWORD=fiber1-pass
+      - RUST_LOG=info
+    volumes:
+      - ./dev/fiber-node-1:/fiber
+    restart: unless-stopped
+
+  fiber-node-2:
+    image: nervos/fiber:0.9.0
+    container_name: fiber-node-2
+    network_mode: host
+    environment:
+      - FIBER_SECRET_KEY_PASSWORD=fiber2-pass
+      - RUST_LOG=info
+    volumes:
+      - ./dev/fiber-node-2:/fiber
+    restart: unless-stopped

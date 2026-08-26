@@ -1,0 +1,22 @@
+{
+  "cell_recipes": [
+    {
+      "name": "swap_covenant",
+      "tx_hash": "0x416746b820fb3ed729c821537d8fa0739aa0bd448004e256a54194bbb72cdb0c",
+      "index": 0,
+      "occupied_capacity": 1862200000000,
+      "data_hash": "0x6798ae518401bc21bf9032d93f2f55701ff16cb1a83d58c4f1360922d5575185",
+      "type_id": "0xe0f6368e393ac20cd9bcfc034f32a4e4096a5f434fe0131db4d0a49dd82ded72"
+    }
+  ],
+  "dep_group_recipes": [
+    {
+      "name": "swap_covenant_group",
+      "tx_hash": "0x9c3d3fe26b2009877174ae9a0d22a6847448bc2aa528065217cdc962ffc1b54e",
+      "index": 0,
+      "data_hash": "0x803c4ae72a7c9c80f888ad33b0a5699b618576386ff477125c1f7b7e409ec048",
+      "occupied_capacity": 10100000000,
+      "type_id": null
+    }
+  ]
+}
