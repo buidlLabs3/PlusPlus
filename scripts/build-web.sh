@@ -16,8 +16,8 @@ import os
 with open(os.environ['OUT'], 'r') as f:
     content = f.read()
 
-api_url = os.environ.get('PLUSPLUS_API_URL', '')
-ws_url = os.environ.get('PLUSPLUS_WS_URL', '')
+api_url = os.environ.get('PLUSPLUS_API_URL', '').strip()
+ws_url = os.environ.get('PLUSPLUS_WS_URL', '').strip()
 
 if api_url:
     content = content.replace("'__PLUSPLUS_API_URL__'", repr(api_url))

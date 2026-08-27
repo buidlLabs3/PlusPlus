@@ -137,7 +137,9 @@ pub async fn init_db(db: &sqlx::SqlitePool) -> Result<(), sqlx::Error> {
             expiry INTEGER NOT NULL,
             status TEXT NOT NULL DEFAULT 'Active',
             created_block INTEGER NOT NULL,
-            updated_block INTEGER NOT NULL
+            updated_block INTEGER NOT NULL,
+            invoice_hash TEXT,
+            invoice_cancelled BOOLEAN DEFAULT FALSE
         )"
     )
     .execute(db)
@@ -151,6 +153,7 @@ pub async fn init_db(db: &sqlx::SqlitePool) -> Result<(), sqlx::Error> {
             amount INTEGER NOT NULL,
             status TEXT NOT NULL DEFAULT 'Pending',
             block INTEGER NOT NULL,
+            payment_hash TEXT,
             FOREIGN KEY (offer_id) REFERENCES offers(offer_id)
         )"
     )
@@ -170,6 +173,26 @@ pub async fn init_db(db: &sqlx::SqlitePool) -> Result<(), sqlx::Error> {
     )
     .execute(db)
     .await?;
+
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS channel_states (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            channel_id TEXT NOT NULL,
+            balance_a INTEGER NOT NULL,
+            balance_b INTEGER NOT NULL,
+            sequence INTEGER NOT NULL,
+            block_number INTEGER NOT NULL,
+            settled BOOLEAN DEFAULT FALSE,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )"
+    )
+    .execute(db)
+    .await?;
+
+    // Migration: add invoice_hash column to offers if missing
+    let _ = sqlx::query("ALTER TABLE offers ADD COLUMN invoice_hash TEXT").execute(db).await;
+    let _ = sqlx::query("ALTER TABLE offers ADD COLUMN invoice_cancelled BOOLEAN DEFAULT FALSE").execute(db).await;
+    let _ = sqlx::query("ALTER TABLE swaps ADD COLUMN payment_hash TEXT").execute(db).await;
 
     Ok(())
 }

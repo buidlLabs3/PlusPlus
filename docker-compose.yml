@@ -13,8 +13,12 @@ services:
       - PLUSPLUS_DB=/app/data/plusplus.db
       - RUST_LOG=info
       - PLUSPLUS_NETWORK=testnet
-      # Fiber node connection (configure for your setup)
-      # - FIBER_NODE_URL=http://fiber-node:8080
+      # Fiber node connection (set these for real Fiber integration)
+      - FIBER_NODE_1_URL=${FIBER_NODE_1_URL:-http://127.0.0.1:8227}
+      - FIBER_NODE_2_URL=${FIBER_NODE_2_URL:-http://127.0.0.1:8237}
+      - FIBER_REQUEST_TIMEOUT=${FIBER_REQUEST_TIMEOUT:-30}
+      - FIBER_MAX_RETRIES=${FIBER_MAX_RETRIES:-3}
+      - FIBER_CIRCUIT_THRESHOLD=${FIBER_CIRCUIT_THRESHOLD:-5}
     volumes:
       - plusplus-data:/app/data
     restart: unless-stopped

@@ -101,6 +101,18 @@ pub struct NodeInfo {
     pub total_capacity: u64,
 }
 
+/// Wrapper for list_channels RPC response (result contains {"channels": [...]}).
+#[derive(Debug, Deserialize)]
+struct ChannelsResponse {
+    channels: Vec<ChannelInfo>,
+}
+
+/// Wrapper for list_peers RPC response (result contains {"peers": [...]}).
+#[derive(Debug, Deserialize)]
+struct PeersResponse {
+    peers: Vec<PeerInfo>,
+}
+
 /// Channel information from the Fiber node.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChannelInfo {
@@ -500,7 +512,8 @@ impl FiberClient {
 
     /// List connected peers.
     pub async fn list_peers(&self) -> Result<Vec<PeerInfo>, FiberClientError> {
-        self.rpc_call("list_peers", Some(serde_json::json!([{}]))).await
+        let resp: PeersResponse = self.rpc_call("list_peers", Some(serde_json::json!([{}]))).await?;
+        Ok(resp.peers)
     }
 
     // -- Channel Management --
@@ -530,11 +543,12 @@ impl FiberClient {
         &self,
         only_pending: bool,
     ) -> Result<Vec<ChannelInfo>, FiberClientError> {
-        self.rpc_call(
+        let resp: ChannelsResponse = self.rpc_call(
             "list_channels",
             Some(serde_json::json!([{"only_pending": only_pending}])),
         )
-        .await
+        .await?;
+        Ok(resp.channels)
     }
 
     /// Shutdown (close) a channel.

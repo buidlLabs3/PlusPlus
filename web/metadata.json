@@ -1,0 +1,6 @@
+{
+  "name": "PlusPlus DEX",
+  "description": "Decentralized exchange for RGB++ assets on Nervos CKB and Bitcoin Fiber Network with Clerk authentication and Prisma database management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

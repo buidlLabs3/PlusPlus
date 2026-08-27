@@ -1,6 +1,0 @@
-{
-  "outputDirectory": "dist",
-  "buildCommand": "bash scripts/build-web.sh",
-  "installCommand": "echo 'no deps'",
-  "rewrites": []
-}
